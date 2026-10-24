@@ -88,7 +88,8 @@ const PrivacyPage: React.FC = () => {
 					We use one essential cookie, <code>mv_auth</code>, which keeps you signed in for up to 30 days. Short-lived
 					cookies protect the Google sign-in step itself. There are no analytics or advertising cookies. We
 					measure page speed with Vercel Speed Insights, which collects anonymous performance metrics without
-					cookies.
+					cookies. If you hide the demo notice on the booking pages, your browser remembers that for 3 days in its
+					local storage; it is never sent to us.
 				</p>
 			</Section>
 

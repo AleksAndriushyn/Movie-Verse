@@ -182,9 +182,11 @@ const SeatSelectionPage: React.FC = () => {
 								<a href={getLoginUrl(location.pathname)} className="auth-button w-auto">Sign in to book</a>
 							)}
 						</div>
-						{user && selectedSeats.length > 0 && (
-							<p className="mt-2 text-xs text-gray-500">Seats are held for 30 minutes while you pay on Stripe.</p>
-						)}
+						{/* always visible at the moment of paying, even with the demo banner hidden */}
+						<p className="mt-2 text-xs text-gray-500">
+							{user && selectedSeats.length > 0 && "Seats are held for 30 minutes while you pay on Stripe. "}
+							Test payments only: use card 4242 4242 4242 4242, nothing is charged.
+						</p>
 					</div>
 				</>
 			)}

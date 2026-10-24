@@ -5,6 +5,7 @@ import { getLoginUrl } from "@/api/me";
 import { useCurrentUser } from "@/hooks/useAuth";
 import { useOwnReview, useOwnReviewMutations } from "@/hooks/useReviews";
 import type { OwnReview } from "@/types/review";
+import { ConfirmDialog } from "@/components/UI/ConfirmDialog";
 
 const MIN_LENGTH = 10;
 const MAX_LENGTH = 4000;
@@ -87,6 +88,7 @@ export const ReviewEditor: React.FC<{ movieId: number }> = ({ movieId }) => {
 	const { data: review, isLoading } = useOwnReview(movieId);
 	const { remove } = useOwnReviewMutations(movieId);
 	const [editing, setEditing] = useState(false);
+	const [confirmingDelete, setConfirmingDelete] = useState(false);
 
 	if (!user) {
 		return (
@@ -117,11 +119,6 @@ export const ReviewEditor: React.FC<{ movieId: number }> = ({ movieId }) => {
 
 	const note = STATUS_NOTES[review.status];
 
-	const handleDelete = () => {
-		if (window.confirm("Delete your review?")) {
-			remove.mutate();
-		}
-	};
 
 	return (
 		<div className="space-y-2">
@@ -132,11 +129,23 @@ export const ReviewEditor: React.FC<{ movieId: number }> = ({ movieId }) => {
 					<button type="button" onClick={() => setEditing(true)} className="text-red-400 hover:text-red-300">
 						Edit your review
 					</button>
-					<button type="button" onClick={handleDelete} disabled={remove.isPending} className="text-gray-400 hover:text-white">
+					<button type="button" onClick={() => setConfirmingDelete(true)} disabled={remove.isPending} className="text-gray-400 hover:text-white">
 						Delete
 					</button>
 				</div>
 			)}
+			<ConfirmDialog
+				open={confirmingDelete}
+				title="Delete your review?"
+				confirmLabel="Delete"
+				destructive
+				pending={remove.isPending}
+				error={remove.isError ? "Couldn't delete the review. Please try again." : null}
+				onConfirm={() => remove.mutate(undefined, { onSuccess: () => setConfirmingDelete(false) })}
+				onClose={() => setConfirmingDelete(false)}
+			>
+				It disappears from the movie page right away.
+			</ConfirmDialog>
 		</div>
 	);
 };

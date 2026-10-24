@@ -12,7 +12,9 @@ using MovieVerse.Api.Data;
 using MovieVerse.Api.Infrastructure;
 using MovieVerse.Api.Lists;
 using MovieVerse.Api.Movies;
+using MovieVerse.Api.Payments;
 using MovieVerse.Api.Reviews;
+using MovieVerse.Api.Tickets;
 using MovieVerse.Api.Tmdb;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -44,6 +46,16 @@ builder.Services
     .AddStandardResilienceHandler();
 
 builder.Services.AddScoped<MovieCatalog>();
+builder.Services.AddScoped<ShowtimeScheduler>();
+builder.Services.AddScoped<BookingService>();
+builder.Services.AddOptions<TicketsOptions>().Bind(builder.Configuration.GetSection(TicketsOptions.SectionName));
+
+builder.Services
+    .AddOptions<StripeOptions>()
+    .Bind(builder.Configuration.GetSection(StripeOptions.SectionName))
+    .ValidateDataAnnotations()
+    .ValidateOnStart();
+builder.Services.AddSingleton<IPaymentGateway, StripePaymentGateway>();
 
 var connectionString = builder.Configuration.GetConnectionString("Default");
 if (string.IsNullOrWhiteSpace(connectionString))
@@ -165,6 +177,8 @@ app.MapListEndpoints();
 app.MapRatingEndpoints();
 app.MapReviewEndpoints();
 app.MapModerationEndpoints();
+app.MapShowtimeEndpoints();
+app.MapBookingEndpoints();
 
 app.Run();
 

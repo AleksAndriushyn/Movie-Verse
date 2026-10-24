@@ -2,7 +2,8 @@
 
 ASP.NET Core 10 API behind the MovieVerse frontend. It proxies the TMDB endpoints the site uses,
 so the TMDB token never reaches the browser, and keeps user accounts (Google sign-in) with their
-favorites, watchlist, ratings and reviews in Azure SQL.
+favorites, watchlist, ratings and reviews in Azure SQL. It also runs demo cinema bookings: fictional cinemas,
+generated showtimes, seat holds and Stripe test-mode payments.
 
 | Endpoint | TMDB call | Cached for |
 | --- | --- | --- |
@@ -12,6 +13,7 @@ favorites, watchlist, ratings and reviews in Azure SQL.
 | `GET /api/genres` | `genre/movie/list` | 24 h |
 | `GET /api/genres/{id}/movies?page=` | `discover/movie?with_genres=` | 15 min |
 | `GET /api/movies/{id}/tmdb-reviews?page=` | `movie/{id}/reviews` | 1 h |
+| (used by the showtime scheduler) | `movie/now_playing?region=US` | 6 h |
 | `GET /health` | — | — |
 
 Account endpoints use a cookie session (`mv_auth`: HttpOnly, SameSite=Lax, 30 days, renewed while in use):
@@ -48,6 +50,29 @@ Moderation endpoints need `Users.IsAdmin`, which is checked in the database on e
 | `POST /api/admin/reviews/{reviewId}/restore` | Makes the review visible and clears its reports |
 | `POST /api/admin/reviews/{reviewId}/remove` | Removes the review for good; the author can't edit or re-post it |
 
+Demo tickets. Two fictional cinemas with four halls are seeded by migrations (`Tickets/CinemaSeed.cs` holds the hall
+layouts). Showtimes for the next 7 days are generated on demand from TMDB's US now-playing list, 5 a day per hall,
+in San Diego time; prices are $12 standard and $18 VIP. A booking holds its seats for 33 minutes, longer than the
+31-minute Stripe Checkout page, and a unique (showtime, seat) index makes the database refuse double bookings.
+Expired holds are released lazily, the next time anyone touches that showtime.
+
+To make the halls look lived-in, a simulated audience "buys" seats (`Tickets/SimulatedOccupancy.cs`). Each
+(showtime, seat) pair gets a fixed pseudo-random draw; a seat is sold once the showtime's fill level, weighted by
+how desirable the seat is (centre and middle rows first, wheelchair spaces rarely), rises above it. Fill depends on
+the time of day and weekday and grows as the show approaches, so sold seats stay sold; nothing is stored. The API
+refuses to book those seats like any other taken seat. Turn it off with `Tickets__SimulateOccupancy=false`.
+
+| Endpoint | Description |
+| --- | --- |
+| `GET /api/showtimes?date=YYYY-MM-DD` | One day's schedule (default today), grouped by movie, plus the bookable dates and cinemas |
+| `GET /api/movies/{id}/showtimes` | Upcoming showtimes of one movie |
+| `GET /api/showtimes/{id}` | Showtime details and the seat map: rows, columns (for aisles), seat type and `free` / `taken` / `mine` |
+| `POST /api/showtimes/{id}/bookings` | Hold `{ "seatIds": [...] }` (1–10 seats; replaces your earlier hold on that showtime) and get a Stripe Checkout URL; 409 if a seat was taken |
+| `GET /api/me/bookings` | Your tickets and active holds, by showtime |
+| `GET /api/me/bookings/{id}` | One booking; a pending one is reconciled with Stripe first, so payment shows up without the webhook |
+| `POST /api/me/bookings/{id}/cancel` | Releases a hold, or refunds a paid ticket until an hour before the show |
+| `POST /api/payments/stripe-webhook` | Stripe webhook (`checkout.session.completed`, `async_payment_succeeded`, `expired`), verified by signature |
+
 TMDB proxy responses are TMDB's JSON unchanged, and list and rating pages use the same snake_case shape so the
 frontend reuses its movie grids; the other endpoints use camelCase JSON with enums as strings. Errors are
 [ProblemDetails](https://www.rfc-editor.org/rfc/rfc9457).
@@ -63,6 +88,15 @@ Requires the .NET 10 SDK and the Azure CLI. From the repository root, store your
 dotnet user-secrets set "Tmdb:AccessToken" "<token>" --project backend/src/MovieVerse.Api
 dotnet user-secrets set "Google:ClientId" "<client id>" --project backend/src/MovieVerse.Api
 dotnet user-secrets set "Google:ClientSecret" "<client secret>" --project backend/src/MovieVerse.Api
+dotnet user-secrets set "Stripe:SecretKey" "sk_test_..." --project backend/src/MovieVerse.Api
+```
+
+The API refuses to start with anything but a Stripe **test** key (`sk_test_`), so it can't take real payments.
+Locally no webhook is needed: returning from Stripe Checkout reconciles the booking with Stripe. To exercise the
+webhook too, forward it with the Stripe CLI and set `Stripe:WebhookSecret` to the secret it prints:
+
+```bash
+stripe listen --forward-to localhost:5080/api/payments/stripe-webhook
 ```
 
 The development database is `movieverse-dev` on Azure SQL (see `appsettings.Development.json`). It uses
@@ -92,7 +126,9 @@ in-memory SQLite and a fake TMDB, so they need neither Azure nor network access.
 
 1. Create a **Web App**: Publish *Code*, Runtime stack *.NET 10 (LTS)*, OS *Linux*, pricing plan *Free F1*.
 2. In the app's **Settings → Environment variables**, add `Tmdb__AccessToken`, `Google__ClientId`,
-   `Google__ClientSecret`, `App__PublicOrigin` (the site's URL, used for the Google redirect URI) and
+   `Google__ClientSecret`, `Stripe__SecretKey` (test key), `Stripe__WebhookSecret` (from a Stripe webhook endpoint
+   pointing at `https://<site>/api/payments/stripe-webhook`), `App__PublicOrigin` (the site's URL, used for the
+   Google redirect URI and Stripe's return links) and
    `ConnectionStrings__Default` (Azure SQL with `Authentication=Active Directory Default`). Turn on the app's
    system-assigned managed identity and create a database user for it
    (`CREATE USER [<app name>] FROM EXTERNAL PROVIDER`, roles `db_datareader`, `db_datawriter`, `db_ddladmin`).

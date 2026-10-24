@@ -14,6 +14,7 @@ import NotFoundPage from "./NotFoundPage";
 import { ListToggleButtons } from "@/components/Lists/ListToggleButtons";
 import { RatingStars } from "@/components/Ratings/RatingStars";
 import { ReviewsSection } from "@/components/Reviews/ReviewsSection";
+import { MovieShowtimes } from "@/components/Tickets/MovieShowtimes";
 
 const MoviePage: React.FC = () => {
 	const { movieId } = useParams<{ movieId: string }>();
@@ -171,6 +172,8 @@ const MoviePage: React.FC = () => {
 					)}
 				</div>
 			</div>
+
+			<MovieShowtimes movieId={movie.id} />
 
 			<div className="px-4 sm:px-6 lg:px-8 mt-2 border-t border-gray-700 pt-8">
 				<h2 className="text-3xl font-bold mb-6">Trailers & Teasers</h2>

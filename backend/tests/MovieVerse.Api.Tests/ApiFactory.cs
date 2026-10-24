@@ -14,6 +14,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MovieVerse.Api.Auth;
 using MovieVerse.Api.Data;
+using MovieVerse.Api.Payments;
 using MovieVerse.Api.Tmdb;
 
 namespace MovieVerse.Api.Tests;
@@ -26,6 +27,8 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
     private readonly SqliteConnection _connection = new("DataSource=:memory:");
 
     public FakeTmdbHandler Tmdb { get; } = new();
+
+    public FakePaymentGateway Payments { get; } = new();
 
     /// <summary>Extra configuration a test needs, e.g. App:PublicOrigin.</summary>
     public Dictionary<string, string?> Settings { get; } = [];
@@ -40,6 +43,10 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
         builder.UseSetting("Google:ClientSecret", "test-client-secret");
         builder.UseSetting("ConnectionStrings:Default", "unused; replaced by SQLite below");
         builder.UseSetting("Database:MigrateOnStartup", "false");
+        builder.UseSetting("Stripe:SecretKey", "sk_test_fake");
+        builder.UseSetting("Stripe:WebhookSecret", "whsec_fake");
+        // tests pick exact seats; the simulated audience has its own tests
+        builder.UseSetting("Tickets:SimulateOccupancy", Settings.GetValueOrDefault("Tickets:SimulateOccupancy") ?? "false");
         foreach (var (key, value) in Settings)
         {
             builder.UseSetting(key, value);
@@ -48,6 +55,8 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
         builder.ConfigureTestServices(services =>
         {
             services.AddHttpClient<TmdbClient>().ConfigurePrimaryHttpMessageHandler(() => Tmdb);
+            services.RemoveAll<IPaymentGateway>();
+            services.AddSingleton<IPaymentGateway>(Payments);
 
             services.RemoveAll<DbContextOptions<AppDbContext>>();
             services.RemoveAll<IDbContextOptionsConfiguration<AppDbContext>>();

@@ -56,6 +56,12 @@ in San Diego time; prices are $12 standard and $18 VIP. A booking holds its seat
 31-minute Stripe Checkout page, and a unique (showtime, seat) index makes the database refuse double bookings.
 Expired holds are released lazily, the next time anyone touches that showtime.
 
+To make the halls look lived-in, a simulated audience "buys" seats (`Tickets/SimulatedOccupancy.cs`). Each
+(showtime, seat) pair gets a fixed pseudo-random draw; a seat is sold once the showtime's fill level, weighted by
+how desirable the seat is (centre and middle rows first, wheelchair spaces rarely), rises above it. Fill depends on
+the time of day and weekday and grows as the show approaches, so sold seats stay sold; nothing is stored. The API
+refuses to book those seats like any other taken seat. Turn it off with `Tickets__SimulateOccupancy=false`.
+
 | Endpoint | Description |
 | --- | --- |
 | `GET /api/showtimes?date=YYYY-MM-DD` | One day's schedule (default today), grouped by movie, plus the bookable dates and cinemas |

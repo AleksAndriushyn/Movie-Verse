@@ -48,6 +48,7 @@ builder.Services
 builder.Services.AddScoped<MovieCatalog>();
 builder.Services.AddScoped<ShowtimeScheduler>();
 builder.Services.AddScoped<BookingService>();
+builder.Services.AddOptions<TicketsOptions>().Bind(builder.Configuration.GetSection(TicketsOptions.SectionName));
 
 builder.Services
     .AddOptions<StripeOptions>()

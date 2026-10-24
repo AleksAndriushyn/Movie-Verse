@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using MovieVerse.Api.Auth;
 using MovieVerse.Api.Data;
 
@@ -126,6 +127,7 @@ public static class ShowtimeEndpoints
                 ClaimsPrincipal user,
                 AppDbContext db,
                 BookingService bookings,
+                IOptions<TicketsOptions> tickets,
                 CancellationToken ct) =>
         {
             var showtime = await db.Showtimes.SingleOrDefaultAsync(s => s.Id == showtimeId, ct);
@@ -155,6 +157,13 @@ public static class ShowtimeEndpoints
                 .ThenBy(s => s.Column)
                 .ToListAsync(ct);
 
+            // real bookings first; seats nobody booked may still be sold to the simulated audience
+            var now = DateTime.UtcNow;
+            SeatStatus StatusOf(Seat seat) =>
+                statusBySeat.TryGetValue(seat.Id, out var status) ? status
+                : tickets.Value.SimulateOccupancy && SimulatedOccupancy.IsTaken(showtime, seat.Id, now) ? SeatStatus.Taken
+                : SeatStatus.Free;
+
             var rows = seats
                 .GroupBy(s => s.Row)
                 .Select(row => new SeatRow(row.Key, row.Select(seat => new SeatDto(
@@ -162,7 +171,7 @@ public static class ShowtimeEndpoints
                     seat.Number,
                     seat.Column,
                     seat.Type,
-                    statusBySeat.GetValueOrDefault(seat.Id, SeatStatus.Free))).ToList()))
+                    StatusOf(seat))).ToList()))
                 .ToList();
 
             return Results.Ok(new ShowtimeDetails(

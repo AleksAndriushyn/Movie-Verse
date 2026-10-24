@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using MovieVerse.Api.Auth;
 using MovieVerse.Api.Data;
 using MovieVerse.Api.Payments;
@@ -68,6 +69,7 @@ public static class BookingEndpoints
                 AppDbContext db,
                 BookingService bookings,
                 IPaymentGateway payments,
+                IOptions<TicketsOptions> tickets,
                 ILogger<BookingService> logger,
                 CancellationToken ct) =>
         {
@@ -94,6 +96,25 @@ public static class BookingEndpoints
                 {
                     ["seatIds"] = ["Some seats don't exist in this hall."],
                 });
+            }
+
+            // the simulated audience's seats can't be bought, except ones this user already holds
+            if (tickets.Value.SimulateOccupancy)
+            {
+                var userId = user.GetUserId();
+                var now = DateTime.UtcNow;
+                var held = await db.BookingSeats
+                    .Where(s => s.ShowtimeId == showtime.Id && db.Bookings.Any(b =>
+                        b.Id == s.BookingId && b.UserId == userId && b.Status == BookingStatus.Pending && b.ExpiresAtUtc > now))
+                    .Select(s => s.SeatId)
+                    .ToListAsync(ct);
+                if (seats.Any(seat => !held.Contains(seat.Id) && SimulatedOccupancy.IsTaken(showtime, seat.Id, now)))
+                {
+                    return Results.Problem(
+                        statusCode: StatusCodes.Status409Conflict,
+                        title: "Seats taken",
+                        detail: new SeatsTakenException().Message);
+                }
             }
 
             Booking booking;

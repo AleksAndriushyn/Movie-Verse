@@ -45,6 +45,8 @@ public sealed class ApiFactory : WebApplicationFactory<Program>
         builder.UseSetting("Database:MigrateOnStartup", "false");
         builder.UseSetting("Stripe:SecretKey", "sk_test_fake");
         builder.UseSetting("Stripe:WebhookSecret", "whsec_fake");
+        // tests pick exact seats; the simulated audience has its own tests
+        builder.UseSetting("Tickets:SimulateOccupancy", Settings.GetValueOrDefault("Tickets:SimulateOccupancy") ?? "false");
         foreach (var (key, value) in Settings)
         {
             builder.UseSetting(key, value);

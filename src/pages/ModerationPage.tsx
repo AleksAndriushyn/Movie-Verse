@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
 import Pagination from "@/components/Pagination/Pagination";
 import { Avatar } from "@/components/Reviews/Avatar";
 import { formatReviewDate } from "@/components/Reviews/format";
+import { ConfirmDialog } from "@/components/UI/ConfirmDialog";
 import { useCurrentUser } from "@/hooks/useAuth";
 import { useModerateReview, useModerationQueue } from "@/hooks/useReviews";
 import type { ModeratedReview, ReportReason } from "@/types/review";
@@ -18,12 +19,7 @@ const REASON_LABELS: Record<ReportReason, string> = {
 
 const QueueItem: React.FC<{ review: ModeratedReview }> = ({ review }) => {
 	const moderate = useModerateReview();
-
-	const handleRemove = () => {
-		if (window.confirm("Remove this review for good? The author won't be able to edit or re-post it.")) {
-			moderate.mutate({ reviewId: review.id, action: "remove" });
-		}
-	};
+	const [confirmingRemove, setConfirmingRemove] = useState(false);
 
 	const reasons = Object.entries(review.reasons)
 		.map(([reason, count]) => `${REASON_LABELS[reason as ReportReason]} ×${count}`)
@@ -72,14 +68,30 @@ const QueueItem: React.FC<{ review: ModeratedReview }> = ({ review }) => {
 				</button>
 				<button
 					type="button"
-					onClick={handleRemove}
+					onClick={() => setConfirmingRemove(true)}
 					disabled={moderate.isPending}
 					className="px-4 py-2 rounded-full bg-red-700 hover:bg-red-600 text-sm font-semibold disabled:opacity-50"
 				>
 					Remove
 				</button>
 			</footer>
-			{moderate.isError && <p role="alert" className="mt-2 text-sm text-red-400">Couldn't apply that. Please try again.</p>}
+			{moderate.isError && !confirmingRemove && (
+				<p role="alert" className="mt-2 text-sm text-red-400">Couldn't apply that. Please try again.</p>
+			)}
+			<ConfirmDialog
+				open={confirmingRemove}
+				title="Remove this review for good?"
+				confirmLabel="Remove"
+				destructive
+				pending={moderate.isPending}
+				error={moderate.isError ? "Couldn't remove the review. Please try again." : null}
+				onConfirm={() =>
+					moderate.mutate({ reviewId: review.id, action: "remove" }, { onSuccess: () => setConfirmingRemove(false) })
+				}
+				onClose={() => setConfirmingRemove(false)}
+			>
+				The author won't be able to edit or re-post it.
+			</ConfirmDialog>
 		</article>
 	);
 };

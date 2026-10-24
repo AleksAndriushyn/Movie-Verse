@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link, useLocation, useParams } from "react-router-dom";
 import { QRCodeSVG } from "qrcode.react";
 import { ApiError } from "@/api/AxiosInstance";
 import { getLoginUrl } from "@/api/me";
 import { DemoBanner } from "@/components/Tickets/DemoBanner";
 import { formatMoney, formatShowDate, formatShowTime } from "@/components/Tickets/format";
+import { ConfirmDialog } from "@/components/UI/ConfirmDialog";
 import { useCurrentUser } from "@/hooks/useAuth";
 import { useCancelBooking, useMyBooking } from "@/hooks/useTickets";
 import type { Booking } from "@/types/tickets";
@@ -32,6 +33,7 @@ const TicketPage: React.FC = () => {
 	const { data: user, isLoading: isUserLoading } = useCurrentUser();
 	const { data: booking, isLoading, error } = useMyBooking(bookingId);
 	const cancel = useCancelBooking();
+	const [confirming, setConfirming] = useState(false);
 
 	if (isUserLoading || isLoading) {
 		return <div className="max-w-xl mx-auto h-96 rounded-2xl bg-gray-800 animate-pulse" />;
@@ -57,14 +59,6 @@ const TicketPage: React.FC = () => {
 	const tz = booking.cinema.timeZone;
 	const isRefund = booking.status === "paid";
 
-	const handleCancel = () => {
-		const question = isRefund
-			? "Cancel this ticket? The (test) payment will be refunded and the seats released."
-			: "Cancel this booking and release the seats?";
-		if (window.confirm(question)) {
-			cancel.mutate(booking.id);
-		}
-	};
 
 	return (
 		<div className="max-w-xl mx-auto">
@@ -129,7 +123,7 @@ const TicketPage: React.FC = () => {
 				{booking.canCancel && (
 					<button
 						type="button"
-						onClick={handleCancel}
+						onClick={() => setConfirming(true)}
 						disabled={cancel.isPending}
 						className="text-red-400 hover:text-red-300 disabled:opacity-50"
 					>
@@ -140,7 +134,23 @@ const TicketPage: React.FC = () => {
 					<span className="text-gray-500">Refunds close an hour before the showtime.</span>
 				)}
 			</div>
-			{cancel.isError && <p role="alert" className="mt-2 text-sm text-red-400">{cancel.error.message}</p>}
+			<ConfirmDialog
+				open={confirming}
+				title={isRefund ? "Cancel and refund this ticket?" : "Cancel this booking?"}
+				confirmLabel={isRefund ? "Cancel and refund" : "Cancel booking"}
+				destructive
+				pending={cancel.isPending}
+				error={cancel.isError ? cancel.error.message : null}
+				onConfirm={() => cancel.mutate(booking.id, { onSuccess: () => setConfirming(false) })}
+				onClose={() => {
+					setConfirming(false);
+					cancel.reset();
+				}}
+			>
+				{isRefund
+					? `The (test) payment of ${formatMoney(booking.totalCents, booking.currency)} will be refunded and seats ${booking.seatLabels} released.`
+					: `Seats ${booking.seatLabels} will be released.`}
+			</ConfirmDialog>
 		</div>
 	);
 };

@@ -99,7 +99,7 @@ const SeatSelectionPage: React.FC = () => {
 	};
 
 	return (
-		<div className="max-w-5xl mx-auto">
+		<div>
 			<title>{`Tickets: ${showtime.movieTitle} | MovieVerse`}</title>
 			<DemoBanner />
 

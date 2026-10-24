@@ -2,7 +2,9 @@ import React from "react";
 import clsx from "clsx";
 import type { Seat, SeatRow, SeatType } from "@/types/tickets";
 
-const SEAT_SIZE = "w-7 h-7 sm:w-8 sm:h-8";
+/** Seats grow with the page, between these sizes per hall column (rem). */
+const MIN_SEAT_REM = 2;
+const MAX_SEAT_REM = 4;
 
 const TYPE_NAMES: Record<SeatType, string> = {
 	standard: "Standard",
@@ -12,8 +14,7 @@ const TYPE_NAMES: Record<SeatType, string> = {
 
 const seatClass = (seat: Seat, selected: boolean, disabled: boolean) =>
 	clsx(
-		SEAT_SIZE,
-		"rounded-t-lg rounded-b text-[10px] sm:text-xs font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white",
+		"aspect-square w-full rounded-t-[30%] rounded-b-[12%] text-[clamp(9px,1.1vw,15px)] font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white",
 		selected
 			? "bg-red-600 text-white"
 			: seat.status === "taken"
@@ -42,18 +43,23 @@ export const SeatMap: React.FC<SeatMapProps> = ({ rows, selected, onToggle, pric
 
 	return (
 		<div className="overflow-x-auto pb-2">
-			<div className="mx-auto w-max min-w-full">
-				<div className="mx-auto mb-8 h-2 w-3/4 rounded-full bg-gradient-to-r from-transparent via-gray-300 to-transparent" />
+			{/* one centred block as wide as the page allows: the screen spans exactly the seats beneath it */}
+			<div
+				className="mx-auto"
+				style={{ width: `clamp(${hallWidth * MIN_SEAT_REM}rem, 100%, ${hallWidth * MAX_SEAT_REM}rem)` }}
+			>
+				<div className="mx-auto mb-2 h-2 w-full rounded-[50%] bg-gradient-to-r from-transparent via-gray-200 to-transparent shadow-[0_8px_30px_rgba(255,255,255,0.25)]" />
 				<p className="mb-6 text-center text-xs uppercase tracking-[0.3em] text-gray-500">Screen</p>
-				<div className="space-y-2" role="group" aria-label="Seats">
+				<div className="space-y-1.5 sm:space-y-2" role="group" aria-label="Seats">
 					{rows.map((row) => {
 						const offset = Math.floor((hallWidth - width(row)) / 2);
 						return (
 							<div key={row.row} className="flex items-center gap-2">
-								<span className="w-5 text-center text-xs text-gray-500" aria-hidden="true">{row.row}</span>
+								<span className="w-5 shrink-0 text-center text-xs text-gray-500" aria-hidden="true">{row.row}</span>
+								{/* equal columns, so empty ones (aisles) keep their width */}
 								<div
-									className="grid gap-1 sm:gap-1.5"
-									style={{ gridTemplateColumns: `repeat(${hallWidth}, auto)` }}
+									className="grid flex-1 gap-1 sm:gap-1.5"
+									style={{ gridTemplateColumns: `repeat(${hallWidth}, minmax(0, 1fr))` }}
 								>
 									{row.seats.map((seat) => {
 										const isSelected = selected.has(seat.id);
@@ -78,7 +84,7 @@ export const SeatMap: React.FC<SeatMapProps> = ({ rows, selected, onToggle, pric
 										);
 									})}
 								</div>
-								<span className="w-5 text-center text-xs text-gray-500" aria-hidden="true">{row.row}</span>
+								<span className="w-5 shrink-0 text-center text-xs text-gray-500" aria-hidden="true">{row.row}</span>
 							</div>
 						);
 					})}

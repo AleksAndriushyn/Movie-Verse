@@ -57,6 +57,9 @@ const AuthControls: React.FC = () => {
 					{user.email && <p className="text-xs text-gray-400 truncate">{user.email}</p>}
 				</div>
 				<MenuItem>
+					<Link to="/tickets" className={MENU_ITEM_CLASS}>My tickets</Link>
+				</MenuItem>
+				<MenuItem>
 					<Link to="/favorites" className={MENU_ITEM_CLASS}>Favorites</Link>
 				</MenuItem>
 				<MenuItem>

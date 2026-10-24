@@ -24,6 +24,7 @@ const Footer: React.FC = () => {
             <div className="flex flex-col space-y-2">
               <h4 className="font-semibold text-white mb-1 uppercase">Explore</h4>
               <Link to="/" className={FOOTER_LINK_CLASS}>Popular</Link>
+              <Link to="/showtimes" className={FOOTER_LINK_CLASS}>Tickets</Link>
               {genres?.slice(0, 3).map((genre) => (
                 <Link key={genre.id} to={`/genre/${genre.id}`} className={FOOTER_LINK_CLASS}>
                   {genre.name}

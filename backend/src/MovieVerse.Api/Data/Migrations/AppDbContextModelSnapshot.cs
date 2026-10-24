@@ -22,6 +22,184 @@ namespace MovieVerse.Api.Data.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("MovieVerse.Api.Data.Booking", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("CheckoutUrl")
+                        .HasMaxLength(2048)
+                        .HasColumnType("nvarchar(2048)");
+
+                    b.Property<DateTime>("CreatedAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("ExpiresAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("PaidAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SeatLabels")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("ShowtimeId")
+                        .HasColumnType("int");
+
+                    b.Property<byte>("Status")
+                        .HasColumnType("tinyint");
+
+                    b.Property<string>("StripePaymentIntentId")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("StripeSessionId")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<string>("TicketCode")
+                        .HasMaxLength(16)
+                        .HasColumnType("nvarchar(16)");
+
+                    b.Property<int>("TotalCents")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("StripeSessionId")
+                        .IsUnique()
+                        .HasFilter("[StripeSessionId] IS NOT NULL");
+
+                    b.HasIndex("ShowtimeId", "Status");
+
+                    b.HasIndex("UserId", "CreatedAtUtc");
+
+                    b.ToTable("Bookings");
+                });
+
+            modelBuilder.Entity("MovieVerse.Api.Data.BookingSeat", b =>
+                {
+                    b.Property<Guid>("BookingId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("SeatId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("PriceCents")
+                        .HasColumnType("int");
+
+                    b.Property<int>("ShowtimeId")
+                        .HasColumnType("int");
+
+                    b.HasKey("BookingId", "SeatId");
+
+                    b.HasIndex("SeatId");
+
+                    b.HasIndex("ShowtimeId", "SeatId")
+                        .IsUnique();
+
+                    b.ToTable("BookingSeats");
+                });
+
+            modelBuilder.Entity("MovieVerse.Api.Data.Cinema", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Address")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("TimeZone")
+                        .IsRequired()
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Cinemas");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            Address = "Gaslamp Quarter, San Diego, CA",
+                            Name = "Flamingo Screens",
+                            TimeZone = "America/Los_Angeles"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            Address = "North Park, San Diego, CA",
+                            Name = "Potuzhniy Cinema",
+                            TimeZone = "America/Los_Angeles"
+                        });
+                });
+
+            modelBuilder.Entity("MovieVerse.Api.Data.Hall", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("CinemaId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CinemaId");
+
+                    b.ToTable("Halls");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CinemaId = 1,
+                            Name = "Kyiv"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CinemaId = 1,
+                            Name = "Lviv"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CinemaId = 2,
+                            Name = "Odesa"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CinemaId = 2,
+                            Name = "Kharkiv VIP"
+                        });
+                });
+
             modelBuilder.Entity("MovieVerse.Api.Data.ListItem", b =>
                 {
                     b.Property<int>("UserId")
@@ -171,6 +349,3463 @@ namespace MovieVerse.Api.Data.Migrations
                     b.ToTable("ReviewReports");
                 });
 
+            modelBuilder.Entity("MovieVerse.Api.Data.Seat", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("Column")
+                        .HasColumnType("int");
+
+                    b.Property<int>("HallId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Number")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Row")
+                        .IsRequired()
+                        .HasMaxLength(2)
+                        .HasColumnType("nvarchar(2)");
+
+                    b.Property<byte>("Type")
+                        .HasColumnType("tinyint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("HallId", "Row", "Number")
+                        .IsUnique();
+
+                    b.ToTable("Seats");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1001,
+                            Column = 0,
+                            HallId = 1,
+                            Number = 1,
+                            Row = "A",
+                            Type = (byte)2
+                        },
+                        new
+                        {
+                            Id = 1002,
+                            Column = 1,
+                            HallId = 1,
+                            Number = 2,
+                            Row = "A",
+                            Type = (byte)2
+                        },
+                        new
+                        {
+                            Id = 1003,
+                            Column = 5,
+                            HallId = 1,
+                            Number = 3,
+                            Row = "A",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1004,
+                            Column = 6,
+                            HallId = 1,
+                            Number = 4,
+                            Row = "A",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1005,
+                            Column = 7,
+                            HallId = 1,
+                            Number = 5,
+                            Row = "A",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1006,
+                            Column = 8,
+                            HallId = 1,
+                            Number = 6,
+                            Row = "A",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1007,
+                            Column = 9,
+                            HallId = 1,
+                            Number = 7,
+                            Row = "A",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1008,
+                            Column = 10,
+                            HallId = 1,
+                            Number = 8,
+                            Row = "A",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1009,
+                            Column = 11,
+                            HallId = 1,
+                            Number = 9,
+                            Row = "A",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1010,
+                            Column = 12,
+                            HallId = 1,
+                            Number = 10,
+                            Row = "A",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1011,
+                            Column = 13,
+                            HallId = 1,
+                            Number = 11,
+                            Row = "A",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1012,
+                            Column = 14,
+                            HallId = 1,
+                            Number = 12,
+                            Row = "A",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1013,
+                            Column = 18,
+                            HallId = 1,
+                            Number = 13,
+                            Row = "A",
+                            Type = (byte)2
+                        },
+                        new
+                        {
+                            Id = 1014,
+                            Column = 19,
+                            HallId = 1,
+                            Number = 14,
+                            Row = "A",
+                            Type = (byte)2
+                        },
+                        new
+                        {
+                            Id = 1015,
+                            Column = 0,
+                            HallId = 1,
+                            Number = 1,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1016,
+                            Column = 1,
+                            HallId = 1,
+                            Number = 2,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1017,
+                            Column = 2,
+                            HallId = 1,
+                            Number = 3,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1018,
+                            Column = 3,
+                            HallId = 1,
+                            Number = 4,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1019,
+                            Column = 5,
+                            HallId = 1,
+                            Number = 5,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1020,
+                            Column = 6,
+                            HallId = 1,
+                            Number = 6,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1021,
+                            Column = 7,
+                            HallId = 1,
+                            Number = 7,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1022,
+                            Column = 8,
+                            HallId = 1,
+                            Number = 8,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1023,
+                            Column = 9,
+                            HallId = 1,
+                            Number = 9,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1024,
+                            Column = 10,
+                            HallId = 1,
+                            Number = 10,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1025,
+                            Column = 11,
+                            HallId = 1,
+                            Number = 11,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1026,
+                            Column = 12,
+                            HallId = 1,
+                            Number = 12,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1027,
+                            Column = 13,
+                            HallId = 1,
+                            Number = 13,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1028,
+                            Column = 14,
+                            HallId = 1,
+                            Number = 14,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1029,
+                            Column = 16,
+                            HallId = 1,
+                            Number = 15,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1030,
+                            Column = 17,
+                            HallId = 1,
+                            Number = 16,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1031,
+                            Column = 18,
+                            HallId = 1,
+                            Number = 17,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1032,
+                            Column = 19,
+                            HallId = 1,
+                            Number = 18,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1033,
+                            Column = 0,
+                            HallId = 1,
+                            Number = 1,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1034,
+                            Column = 1,
+                            HallId = 1,
+                            Number = 2,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1035,
+                            Column = 2,
+                            HallId = 1,
+                            Number = 3,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1036,
+                            Column = 3,
+                            HallId = 1,
+                            Number = 4,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1037,
+                            Column = 5,
+                            HallId = 1,
+                            Number = 5,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1038,
+                            Column = 6,
+                            HallId = 1,
+                            Number = 6,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1039,
+                            Column = 7,
+                            HallId = 1,
+                            Number = 7,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1040,
+                            Column = 8,
+                            HallId = 1,
+                            Number = 8,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1041,
+                            Column = 9,
+                            HallId = 1,
+                            Number = 9,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1042,
+                            Column = 10,
+                            HallId = 1,
+                            Number = 10,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1043,
+                            Column = 11,
+                            HallId = 1,
+                            Number = 11,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1044,
+                            Column = 12,
+                            HallId = 1,
+                            Number = 12,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1045,
+                            Column = 13,
+                            HallId = 1,
+                            Number = 13,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1046,
+                            Column = 14,
+                            HallId = 1,
+                            Number = 14,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1047,
+                            Column = 16,
+                            HallId = 1,
+                            Number = 15,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1048,
+                            Column = 17,
+                            HallId = 1,
+                            Number = 16,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1049,
+                            Column = 18,
+                            HallId = 1,
+                            Number = 17,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1050,
+                            Column = 19,
+                            HallId = 1,
+                            Number = 18,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1051,
+                            Column = 0,
+                            HallId = 1,
+                            Number = 1,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1052,
+                            Column = 1,
+                            HallId = 1,
+                            Number = 2,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1053,
+                            Column = 2,
+                            HallId = 1,
+                            Number = 3,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1054,
+                            Column = 3,
+                            HallId = 1,
+                            Number = 4,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1055,
+                            Column = 5,
+                            HallId = 1,
+                            Number = 5,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1056,
+                            Column = 6,
+                            HallId = 1,
+                            Number = 6,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1057,
+                            Column = 7,
+                            HallId = 1,
+                            Number = 7,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1058,
+                            Column = 8,
+                            HallId = 1,
+                            Number = 8,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1059,
+                            Column = 9,
+                            HallId = 1,
+                            Number = 9,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1060,
+                            Column = 10,
+                            HallId = 1,
+                            Number = 10,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1061,
+                            Column = 11,
+                            HallId = 1,
+                            Number = 11,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1062,
+                            Column = 12,
+                            HallId = 1,
+                            Number = 12,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1063,
+                            Column = 13,
+                            HallId = 1,
+                            Number = 13,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1064,
+                            Column = 14,
+                            HallId = 1,
+                            Number = 14,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1065,
+                            Column = 16,
+                            HallId = 1,
+                            Number = 15,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1066,
+                            Column = 17,
+                            HallId = 1,
+                            Number = 16,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1067,
+                            Column = 18,
+                            HallId = 1,
+                            Number = 17,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1068,
+                            Column = 19,
+                            HallId = 1,
+                            Number = 18,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1069,
+                            Column = 0,
+                            HallId = 1,
+                            Number = 1,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1070,
+                            Column = 1,
+                            HallId = 1,
+                            Number = 2,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1071,
+                            Column = 2,
+                            HallId = 1,
+                            Number = 3,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1072,
+                            Column = 3,
+                            HallId = 1,
+                            Number = 4,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1073,
+                            Column = 5,
+                            HallId = 1,
+                            Number = 5,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1074,
+                            Column = 6,
+                            HallId = 1,
+                            Number = 6,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1075,
+                            Column = 7,
+                            HallId = 1,
+                            Number = 7,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1076,
+                            Column = 8,
+                            HallId = 1,
+                            Number = 8,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1077,
+                            Column = 9,
+                            HallId = 1,
+                            Number = 9,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1078,
+                            Column = 10,
+                            HallId = 1,
+                            Number = 10,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1079,
+                            Column = 11,
+                            HallId = 1,
+                            Number = 11,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1080,
+                            Column = 12,
+                            HallId = 1,
+                            Number = 12,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1081,
+                            Column = 13,
+                            HallId = 1,
+                            Number = 13,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1082,
+                            Column = 14,
+                            HallId = 1,
+                            Number = 14,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1083,
+                            Column = 16,
+                            HallId = 1,
+                            Number = 15,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1084,
+                            Column = 17,
+                            HallId = 1,
+                            Number = 16,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1085,
+                            Column = 18,
+                            HallId = 1,
+                            Number = 17,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1086,
+                            Column = 19,
+                            HallId = 1,
+                            Number = 18,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1087,
+                            Column = 0,
+                            HallId = 1,
+                            Number = 1,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1088,
+                            Column = 1,
+                            HallId = 1,
+                            Number = 2,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1089,
+                            Column = 2,
+                            HallId = 1,
+                            Number = 3,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1090,
+                            Column = 3,
+                            HallId = 1,
+                            Number = 4,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1091,
+                            Column = 5,
+                            HallId = 1,
+                            Number = 5,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1092,
+                            Column = 6,
+                            HallId = 1,
+                            Number = 6,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1093,
+                            Column = 7,
+                            HallId = 1,
+                            Number = 7,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1094,
+                            Column = 8,
+                            HallId = 1,
+                            Number = 8,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1095,
+                            Column = 9,
+                            HallId = 1,
+                            Number = 9,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1096,
+                            Column = 10,
+                            HallId = 1,
+                            Number = 10,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1097,
+                            Column = 11,
+                            HallId = 1,
+                            Number = 11,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1098,
+                            Column = 12,
+                            HallId = 1,
+                            Number = 12,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1099,
+                            Column = 13,
+                            HallId = 1,
+                            Number = 13,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1100,
+                            Column = 14,
+                            HallId = 1,
+                            Number = 14,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1101,
+                            Column = 16,
+                            HallId = 1,
+                            Number = 15,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1102,
+                            Column = 17,
+                            HallId = 1,
+                            Number = 16,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1103,
+                            Column = 18,
+                            HallId = 1,
+                            Number = 17,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1104,
+                            Column = 19,
+                            HallId = 1,
+                            Number = 18,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1105,
+                            Column = 0,
+                            HallId = 1,
+                            Number = 1,
+                            Row = "G",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1106,
+                            Column = 1,
+                            HallId = 1,
+                            Number = 2,
+                            Row = "G",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1107,
+                            Column = 2,
+                            HallId = 1,
+                            Number = 3,
+                            Row = "G",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1108,
+                            Column = 3,
+                            HallId = 1,
+                            Number = 4,
+                            Row = "G",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1109,
+                            Column = 5,
+                            HallId = 1,
+                            Number = 5,
+                            Row = "G",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1110,
+                            Column = 6,
+                            HallId = 1,
+                            Number = 6,
+                            Row = "G",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1111,
+                            Column = 7,
+                            HallId = 1,
+                            Number = 7,
+                            Row = "G",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1112,
+                            Column = 8,
+                            HallId = 1,
+                            Number = 8,
+                            Row = "G",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1113,
+                            Column = 9,
+                            HallId = 1,
+                            Number = 9,
+                            Row = "G",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1114,
+                            Column = 10,
+                            HallId = 1,
+                            Number = 10,
+                            Row = "G",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1115,
+                            Column = 11,
+                            HallId = 1,
+                            Number = 11,
+                            Row = "G",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1116,
+                            Column = 12,
+                            HallId = 1,
+                            Number = 12,
+                            Row = "G",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1117,
+                            Column = 13,
+                            HallId = 1,
+                            Number = 13,
+                            Row = "G",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1118,
+                            Column = 14,
+                            HallId = 1,
+                            Number = 14,
+                            Row = "G",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1119,
+                            Column = 16,
+                            HallId = 1,
+                            Number = 15,
+                            Row = "G",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1120,
+                            Column = 17,
+                            HallId = 1,
+                            Number = 16,
+                            Row = "G",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1121,
+                            Column = 18,
+                            HallId = 1,
+                            Number = 17,
+                            Row = "G",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1122,
+                            Column = 19,
+                            HallId = 1,
+                            Number = 18,
+                            Row = "G",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1123,
+                            Column = 0,
+                            HallId = 1,
+                            Number = 1,
+                            Row = "H",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1124,
+                            Column = 1,
+                            HallId = 1,
+                            Number = 2,
+                            Row = "H",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1125,
+                            Column = 2,
+                            HallId = 1,
+                            Number = 3,
+                            Row = "H",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1126,
+                            Column = 3,
+                            HallId = 1,
+                            Number = 4,
+                            Row = "H",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1127,
+                            Column = 5,
+                            HallId = 1,
+                            Number = 5,
+                            Row = "H",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1128,
+                            Column = 6,
+                            HallId = 1,
+                            Number = 6,
+                            Row = "H",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1129,
+                            Column = 7,
+                            HallId = 1,
+                            Number = 7,
+                            Row = "H",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1130,
+                            Column = 8,
+                            HallId = 1,
+                            Number = 8,
+                            Row = "H",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1131,
+                            Column = 9,
+                            HallId = 1,
+                            Number = 9,
+                            Row = "H",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1132,
+                            Column = 10,
+                            HallId = 1,
+                            Number = 10,
+                            Row = "H",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1133,
+                            Column = 11,
+                            HallId = 1,
+                            Number = 11,
+                            Row = "H",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1134,
+                            Column = 12,
+                            HallId = 1,
+                            Number = 12,
+                            Row = "H",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1135,
+                            Column = 13,
+                            HallId = 1,
+                            Number = 13,
+                            Row = "H",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1136,
+                            Column = 14,
+                            HallId = 1,
+                            Number = 14,
+                            Row = "H",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1137,
+                            Column = 16,
+                            HallId = 1,
+                            Number = 15,
+                            Row = "H",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1138,
+                            Column = 17,
+                            HallId = 1,
+                            Number = 16,
+                            Row = "H",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1139,
+                            Column = 18,
+                            HallId = 1,
+                            Number = 17,
+                            Row = "H",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1140,
+                            Column = 19,
+                            HallId = 1,
+                            Number = 18,
+                            Row = "H",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 1141,
+                            Column = 0,
+                            HallId = 1,
+                            Number = 1,
+                            Row = "I",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1142,
+                            Column = 1,
+                            HallId = 1,
+                            Number = 2,
+                            Row = "I",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1143,
+                            Column = 2,
+                            HallId = 1,
+                            Number = 3,
+                            Row = "I",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1144,
+                            Column = 3,
+                            HallId = 1,
+                            Number = 4,
+                            Row = "I",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1145,
+                            Column = 5,
+                            HallId = 1,
+                            Number = 5,
+                            Row = "I",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1146,
+                            Column = 6,
+                            HallId = 1,
+                            Number = 6,
+                            Row = "I",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1147,
+                            Column = 7,
+                            HallId = 1,
+                            Number = 7,
+                            Row = "I",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1148,
+                            Column = 8,
+                            HallId = 1,
+                            Number = 8,
+                            Row = "I",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1149,
+                            Column = 9,
+                            HallId = 1,
+                            Number = 9,
+                            Row = "I",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1150,
+                            Column = 10,
+                            HallId = 1,
+                            Number = 10,
+                            Row = "I",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1151,
+                            Column = 11,
+                            HallId = 1,
+                            Number = 11,
+                            Row = "I",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1152,
+                            Column = 12,
+                            HallId = 1,
+                            Number = 12,
+                            Row = "I",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1153,
+                            Column = 13,
+                            HallId = 1,
+                            Number = 13,
+                            Row = "I",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1154,
+                            Column = 14,
+                            HallId = 1,
+                            Number = 14,
+                            Row = "I",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1155,
+                            Column = 16,
+                            HallId = 1,
+                            Number = 15,
+                            Row = "I",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1156,
+                            Column = 17,
+                            HallId = 1,
+                            Number = 16,
+                            Row = "I",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1157,
+                            Column = 18,
+                            HallId = 1,
+                            Number = 17,
+                            Row = "I",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1158,
+                            Column = 19,
+                            HallId = 1,
+                            Number = 18,
+                            Row = "I",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1159,
+                            Column = 0,
+                            HallId = 1,
+                            Number = 1,
+                            Row = "J",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1160,
+                            Column = 1,
+                            HallId = 1,
+                            Number = 2,
+                            Row = "J",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1161,
+                            Column = 2,
+                            HallId = 1,
+                            Number = 3,
+                            Row = "J",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1162,
+                            Column = 3,
+                            HallId = 1,
+                            Number = 4,
+                            Row = "J",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1163,
+                            Column = 5,
+                            HallId = 1,
+                            Number = 5,
+                            Row = "J",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1164,
+                            Column = 6,
+                            HallId = 1,
+                            Number = 6,
+                            Row = "J",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1165,
+                            Column = 7,
+                            HallId = 1,
+                            Number = 7,
+                            Row = "J",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1166,
+                            Column = 8,
+                            HallId = 1,
+                            Number = 8,
+                            Row = "J",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1167,
+                            Column = 9,
+                            HallId = 1,
+                            Number = 9,
+                            Row = "J",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1168,
+                            Column = 10,
+                            HallId = 1,
+                            Number = 10,
+                            Row = "J",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1169,
+                            Column = 11,
+                            HallId = 1,
+                            Number = 11,
+                            Row = "J",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1170,
+                            Column = 12,
+                            HallId = 1,
+                            Number = 12,
+                            Row = "J",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1171,
+                            Column = 13,
+                            HallId = 1,
+                            Number = 13,
+                            Row = "J",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1172,
+                            Column = 14,
+                            HallId = 1,
+                            Number = 14,
+                            Row = "J",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1173,
+                            Column = 16,
+                            HallId = 1,
+                            Number = 15,
+                            Row = "J",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1174,
+                            Column = 17,
+                            HallId = 1,
+                            Number = 16,
+                            Row = "J",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1175,
+                            Column = 18,
+                            HallId = 1,
+                            Number = 17,
+                            Row = "J",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 1176,
+                            Column = 19,
+                            HallId = 1,
+                            Number = 18,
+                            Row = "J",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 2001,
+                            Column = 0,
+                            HallId = 2,
+                            Number = 1,
+                            Row = "A",
+                            Type = (byte)2
+                        },
+                        new
+                        {
+                            Id = 2002,
+                            Column = 3,
+                            HallId = 2,
+                            Number = 2,
+                            Row = "A",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2003,
+                            Column = 4,
+                            HallId = 2,
+                            Number = 3,
+                            Row = "A",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2004,
+                            Column = 5,
+                            HallId = 2,
+                            Number = 4,
+                            Row = "A",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2005,
+                            Column = 7,
+                            HallId = 2,
+                            Number = 5,
+                            Row = "A",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2006,
+                            Column = 8,
+                            HallId = 2,
+                            Number = 6,
+                            Row = "A",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2007,
+                            Column = 9,
+                            HallId = 2,
+                            Number = 7,
+                            Row = "A",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2008,
+                            Column = 12,
+                            HallId = 2,
+                            Number = 8,
+                            Row = "A",
+                            Type = (byte)2
+                        },
+                        new
+                        {
+                            Id = 2009,
+                            Column = 0,
+                            HallId = 2,
+                            Number = 1,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2010,
+                            Column = 1,
+                            HallId = 2,
+                            Number = 2,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2011,
+                            Column = 2,
+                            HallId = 2,
+                            Number = 3,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2012,
+                            Column = 3,
+                            HallId = 2,
+                            Number = 4,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2013,
+                            Column = 4,
+                            HallId = 2,
+                            Number = 5,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2014,
+                            Column = 5,
+                            HallId = 2,
+                            Number = 6,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2015,
+                            Column = 7,
+                            HallId = 2,
+                            Number = 7,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2016,
+                            Column = 8,
+                            HallId = 2,
+                            Number = 8,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2017,
+                            Column = 9,
+                            HallId = 2,
+                            Number = 9,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2018,
+                            Column = 10,
+                            HallId = 2,
+                            Number = 10,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2019,
+                            Column = 11,
+                            HallId = 2,
+                            Number = 11,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2020,
+                            Column = 12,
+                            HallId = 2,
+                            Number = 12,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2021,
+                            Column = 0,
+                            HallId = 2,
+                            Number = 1,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2022,
+                            Column = 1,
+                            HallId = 2,
+                            Number = 2,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2023,
+                            Column = 2,
+                            HallId = 2,
+                            Number = 3,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2024,
+                            Column = 3,
+                            HallId = 2,
+                            Number = 4,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2025,
+                            Column = 4,
+                            HallId = 2,
+                            Number = 5,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2026,
+                            Column = 5,
+                            HallId = 2,
+                            Number = 6,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2027,
+                            Column = 7,
+                            HallId = 2,
+                            Number = 7,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2028,
+                            Column = 8,
+                            HallId = 2,
+                            Number = 8,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2029,
+                            Column = 9,
+                            HallId = 2,
+                            Number = 9,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2030,
+                            Column = 10,
+                            HallId = 2,
+                            Number = 10,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2031,
+                            Column = 11,
+                            HallId = 2,
+                            Number = 11,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2032,
+                            Column = 12,
+                            HallId = 2,
+                            Number = 12,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2033,
+                            Column = 0,
+                            HallId = 2,
+                            Number = 1,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2034,
+                            Column = 1,
+                            HallId = 2,
+                            Number = 2,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2035,
+                            Column = 2,
+                            HallId = 2,
+                            Number = 3,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2036,
+                            Column = 3,
+                            HallId = 2,
+                            Number = 4,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2037,
+                            Column = 4,
+                            HallId = 2,
+                            Number = 5,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2038,
+                            Column = 5,
+                            HallId = 2,
+                            Number = 6,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2039,
+                            Column = 7,
+                            HallId = 2,
+                            Number = 7,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2040,
+                            Column = 8,
+                            HallId = 2,
+                            Number = 8,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2041,
+                            Column = 9,
+                            HallId = 2,
+                            Number = 9,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2042,
+                            Column = 10,
+                            HallId = 2,
+                            Number = 10,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2043,
+                            Column = 11,
+                            HallId = 2,
+                            Number = 11,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2044,
+                            Column = 12,
+                            HallId = 2,
+                            Number = 12,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2045,
+                            Column = 0,
+                            HallId = 2,
+                            Number = 1,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2046,
+                            Column = 1,
+                            HallId = 2,
+                            Number = 2,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2047,
+                            Column = 2,
+                            HallId = 2,
+                            Number = 3,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2048,
+                            Column = 3,
+                            HallId = 2,
+                            Number = 4,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2049,
+                            Column = 4,
+                            HallId = 2,
+                            Number = 5,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2050,
+                            Column = 5,
+                            HallId = 2,
+                            Number = 6,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2051,
+                            Column = 7,
+                            HallId = 2,
+                            Number = 7,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2052,
+                            Column = 8,
+                            HallId = 2,
+                            Number = 8,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2053,
+                            Column = 9,
+                            HallId = 2,
+                            Number = 9,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2054,
+                            Column = 10,
+                            HallId = 2,
+                            Number = 10,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2055,
+                            Column = 11,
+                            HallId = 2,
+                            Number = 11,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2056,
+                            Column = 12,
+                            HallId = 2,
+                            Number = 12,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2057,
+                            Column = 0,
+                            HallId = 2,
+                            Number = 1,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2058,
+                            Column = 1,
+                            HallId = 2,
+                            Number = 2,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2059,
+                            Column = 2,
+                            HallId = 2,
+                            Number = 3,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2060,
+                            Column = 3,
+                            HallId = 2,
+                            Number = 4,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2061,
+                            Column = 4,
+                            HallId = 2,
+                            Number = 5,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2062,
+                            Column = 5,
+                            HallId = 2,
+                            Number = 6,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2063,
+                            Column = 7,
+                            HallId = 2,
+                            Number = 7,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2064,
+                            Column = 8,
+                            HallId = 2,
+                            Number = 8,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2065,
+                            Column = 9,
+                            HallId = 2,
+                            Number = 9,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2066,
+                            Column = 10,
+                            HallId = 2,
+                            Number = 10,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2067,
+                            Column = 11,
+                            HallId = 2,
+                            Number = 11,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2068,
+                            Column = 12,
+                            HallId = 2,
+                            Number = 12,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 2069,
+                            Column = 0,
+                            HallId = 2,
+                            Number = 1,
+                            Row = "G",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 2070,
+                            Column = 1,
+                            HallId = 2,
+                            Number = 2,
+                            Row = "G",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 2071,
+                            Column = 2,
+                            HallId = 2,
+                            Number = 3,
+                            Row = "G",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 2072,
+                            Column = 3,
+                            HallId = 2,
+                            Number = 4,
+                            Row = "G",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 2073,
+                            Column = 4,
+                            HallId = 2,
+                            Number = 5,
+                            Row = "G",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 2074,
+                            Column = 5,
+                            HallId = 2,
+                            Number = 6,
+                            Row = "G",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 2075,
+                            Column = 7,
+                            HallId = 2,
+                            Number = 7,
+                            Row = "G",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 2076,
+                            Column = 8,
+                            HallId = 2,
+                            Number = 8,
+                            Row = "G",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 2077,
+                            Column = 9,
+                            HallId = 2,
+                            Number = 9,
+                            Row = "G",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 2078,
+                            Column = 10,
+                            HallId = 2,
+                            Number = 10,
+                            Row = "G",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 2079,
+                            Column = 11,
+                            HallId = 2,
+                            Number = 11,
+                            Row = "G",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 2080,
+                            Column = 12,
+                            HallId = 2,
+                            Number = 12,
+                            Row = "G",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 3001,
+                            Column = 0,
+                            HallId = 3,
+                            Number = 1,
+                            Row = "A",
+                            Type = (byte)2
+                        },
+                        new
+                        {
+                            Id = 3002,
+                            Column = 3,
+                            HallId = 3,
+                            Number = 2,
+                            Row = "A",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3003,
+                            Column = 4,
+                            HallId = 3,
+                            Number = 3,
+                            Row = "A",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3004,
+                            Column = 5,
+                            HallId = 3,
+                            Number = 4,
+                            Row = "A",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3005,
+                            Column = 6,
+                            HallId = 3,
+                            Number = 5,
+                            Row = "A",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3006,
+                            Column = 7,
+                            HallId = 3,
+                            Number = 6,
+                            Row = "A",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3007,
+                            Column = 8,
+                            HallId = 3,
+                            Number = 7,
+                            Row = "A",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3008,
+                            Column = 9,
+                            HallId = 3,
+                            Number = 8,
+                            Row = "A",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3009,
+                            Column = 12,
+                            HallId = 3,
+                            Number = 9,
+                            Row = "A",
+                            Type = (byte)2
+                        },
+                        new
+                        {
+                            Id = 3010,
+                            Column = 0,
+                            HallId = 3,
+                            Number = 1,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3011,
+                            Column = 1,
+                            HallId = 3,
+                            Number = 2,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3012,
+                            Column = 2,
+                            HallId = 3,
+                            Number = 3,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3013,
+                            Column = 3,
+                            HallId = 3,
+                            Number = 4,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3014,
+                            Column = 4,
+                            HallId = 3,
+                            Number = 5,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3015,
+                            Column = 5,
+                            HallId = 3,
+                            Number = 6,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3016,
+                            Column = 6,
+                            HallId = 3,
+                            Number = 7,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3017,
+                            Column = 8,
+                            HallId = 3,
+                            Number = 8,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3018,
+                            Column = 9,
+                            HallId = 3,
+                            Number = 9,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3019,
+                            Column = 10,
+                            HallId = 3,
+                            Number = 10,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3020,
+                            Column = 11,
+                            HallId = 3,
+                            Number = 11,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3021,
+                            Column = 12,
+                            HallId = 3,
+                            Number = 12,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3022,
+                            Column = 13,
+                            HallId = 3,
+                            Number = 13,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3023,
+                            Column = 14,
+                            HallId = 3,
+                            Number = 14,
+                            Row = "B",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3024,
+                            Column = 0,
+                            HallId = 3,
+                            Number = 1,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3025,
+                            Column = 1,
+                            HallId = 3,
+                            Number = 2,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3026,
+                            Column = 2,
+                            HallId = 3,
+                            Number = 3,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3027,
+                            Column = 3,
+                            HallId = 3,
+                            Number = 4,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3028,
+                            Column = 4,
+                            HallId = 3,
+                            Number = 5,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3029,
+                            Column = 5,
+                            HallId = 3,
+                            Number = 6,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3030,
+                            Column = 6,
+                            HallId = 3,
+                            Number = 7,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3031,
+                            Column = 8,
+                            HallId = 3,
+                            Number = 8,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3032,
+                            Column = 9,
+                            HallId = 3,
+                            Number = 9,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3033,
+                            Column = 10,
+                            HallId = 3,
+                            Number = 10,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3034,
+                            Column = 11,
+                            HallId = 3,
+                            Number = 11,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3035,
+                            Column = 12,
+                            HallId = 3,
+                            Number = 12,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3036,
+                            Column = 13,
+                            HallId = 3,
+                            Number = 13,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3037,
+                            Column = 14,
+                            HallId = 3,
+                            Number = 14,
+                            Row = "C",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3038,
+                            Column = 0,
+                            HallId = 3,
+                            Number = 1,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3039,
+                            Column = 1,
+                            HallId = 3,
+                            Number = 2,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3040,
+                            Column = 2,
+                            HallId = 3,
+                            Number = 3,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3041,
+                            Column = 3,
+                            HallId = 3,
+                            Number = 4,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3042,
+                            Column = 4,
+                            HallId = 3,
+                            Number = 5,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3043,
+                            Column = 5,
+                            HallId = 3,
+                            Number = 6,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3044,
+                            Column = 6,
+                            HallId = 3,
+                            Number = 7,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3045,
+                            Column = 8,
+                            HallId = 3,
+                            Number = 8,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3046,
+                            Column = 9,
+                            HallId = 3,
+                            Number = 9,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3047,
+                            Column = 10,
+                            HallId = 3,
+                            Number = 10,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3048,
+                            Column = 11,
+                            HallId = 3,
+                            Number = 11,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3049,
+                            Column = 12,
+                            HallId = 3,
+                            Number = 12,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3050,
+                            Column = 13,
+                            HallId = 3,
+                            Number = 13,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3051,
+                            Column = 14,
+                            HallId = 3,
+                            Number = 14,
+                            Row = "D",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3052,
+                            Column = 0,
+                            HallId = 3,
+                            Number = 1,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3053,
+                            Column = 1,
+                            HallId = 3,
+                            Number = 2,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3054,
+                            Column = 2,
+                            HallId = 3,
+                            Number = 3,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3055,
+                            Column = 3,
+                            HallId = 3,
+                            Number = 4,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3056,
+                            Column = 4,
+                            HallId = 3,
+                            Number = 5,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3057,
+                            Column = 5,
+                            HallId = 3,
+                            Number = 6,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3058,
+                            Column = 6,
+                            HallId = 3,
+                            Number = 7,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3059,
+                            Column = 8,
+                            HallId = 3,
+                            Number = 8,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3060,
+                            Column = 9,
+                            HallId = 3,
+                            Number = 9,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3061,
+                            Column = 10,
+                            HallId = 3,
+                            Number = 10,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3062,
+                            Column = 11,
+                            HallId = 3,
+                            Number = 11,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3063,
+                            Column = 12,
+                            HallId = 3,
+                            Number = 12,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3064,
+                            Column = 13,
+                            HallId = 3,
+                            Number = 13,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3065,
+                            Column = 14,
+                            HallId = 3,
+                            Number = 14,
+                            Row = "E",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3066,
+                            Column = 0,
+                            HallId = 3,
+                            Number = 1,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3067,
+                            Column = 1,
+                            HallId = 3,
+                            Number = 2,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3068,
+                            Column = 2,
+                            HallId = 3,
+                            Number = 3,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3069,
+                            Column = 3,
+                            HallId = 3,
+                            Number = 4,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3070,
+                            Column = 4,
+                            HallId = 3,
+                            Number = 5,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3071,
+                            Column = 5,
+                            HallId = 3,
+                            Number = 6,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3072,
+                            Column = 6,
+                            HallId = 3,
+                            Number = 7,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3073,
+                            Column = 8,
+                            HallId = 3,
+                            Number = 8,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3074,
+                            Column = 9,
+                            HallId = 3,
+                            Number = 9,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3075,
+                            Column = 10,
+                            HallId = 3,
+                            Number = 10,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3076,
+                            Column = 11,
+                            HallId = 3,
+                            Number = 11,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3077,
+                            Column = 12,
+                            HallId = 3,
+                            Number = 12,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3078,
+                            Column = 13,
+                            HallId = 3,
+                            Number = 13,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3079,
+                            Column = 14,
+                            HallId = 3,
+                            Number = 14,
+                            Row = "F",
+                            Type = (byte)0
+                        },
+                        new
+                        {
+                            Id = 3080,
+                            Column = 0,
+                            HallId = 3,
+                            Number = 1,
+                            Row = "G",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 3081,
+                            Column = 1,
+                            HallId = 3,
+                            Number = 2,
+                            Row = "G",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 3082,
+                            Column = 2,
+                            HallId = 3,
+                            Number = 3,
+                            Row = "G",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 3083,
+                            Column = 3,
+                            HallId = 3,
+                            Number = 4,
+                            Row = "G",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 3084,
+                            Column = 5,
+                            HallId = 3,
+                            Number = 5,
+                            Row = "G",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 3085,
+                            Column = 6,
+                            HallId = 3,
+                            Number = 6,
+                            Row = "G",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 3086,
+                            Column = 7,
+                            HallId = 3,
+                            Number = 7,
+                            Row = "G",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 3087,
+                            Column = 8,
+                            HallId = 3,
+                            Number = 8,
+                            Row = "G",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4001,
+                            Column = 0,
+                            HallId = 4,
+                            Number = 1,
+                            Row = "A",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4002,
+                            Column = 1,
+                            HallId = 4,
+                            Number = 2,
+                            Row = "A",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4003,
+                            Column = 3,
+                            HallId = 4,
+                            Number = 3,
+                            Row = "A",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4004,
+                            Column = 4,
+                            HallId = 4,
+                            Number = 4,
+                            Row = "A",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4005,
+                            Column = 6,
+                            HallId = 4,
+                            Number = 5,
+                            Row = "A",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4006,
+                            Column = 7,
+                            HallId = 4,
+                            Number = 6,
+                            Row = "A",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4007,
+                            Column = 9,
+                            HallId = 4,
+                            Number = 7,
+                            Row = "A",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4008,
+                            Column = 10,
+                            HallId = 4,
+                            Number = 8,
+                            Row = "A",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4009,
+                            Column = 0,
+                            HallId = 4,
+                            Number = 1,
+                            Row = "B",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4010,
+                            Column = 1,
+                            HallId = 4,
+                            Number = 2,
+                            Row = "B",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4011,
+                            Column = 3,
+                            HallId = 4,
+                            Number = 3,
+                            Row = "B",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4012,
+                            Column = 4,
+                            HallId = 4,
+                            Number = 4,
+                            Row = "B",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4013,
+                            Column = 6,
+                            HallId = 4,
+                            Number = 5,
+                            Row = "B",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4014,
+                            Column = 7,
+                            HallId = 4,
+                            Number = 6,
+                            Row = "B",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4015,
+                            Column = 9,
+                            HallId = 4,
+                            Number = 7,
+                            Row = "B",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4016,
+                            Column = 10,
+                            HallId = 4,
+                            Number = 8,
+                            Row = "B",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4017,
+                            Column = 0,
+                            HallId = 4,
+                            Number = 1,
+                            Row = "C",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4018,
+                            Column = 1,
+                            HallId = 4,
+                            Number = 2,
+                            Row = "C",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4019,
+                            Column = 3,
+                            HallId = 4,
+                            Number = 3,
+                            Row = "C",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4020,
+                            Column = 4,
+                            HallId = 4,
+                            Number = 4,
+                            Row = "C",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4021,
+                            Column = 6,
+                            HallId = 4,
+                            Number = 5,
+                            Row = "C",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4022,
+                            Column = 7,
+                            HallId = 4,
+                            Number = 6,
+                            Row = "C",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4023,
+                            Column = 9,
+                            HallId = 4,
+                            Number = 7,
+                            Row = "C",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4024,
+                            Column = 10,
+                            HallId = 4,
+                            Number = 8,
+                            Row = "C",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4025,
+                            Column = 0,
+                            HallId = 4,
+                            Number = 1,
+                            Row = "D",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4026,
+                            Column = 1,
+                            HallId = 4,
+                            Number = 2,
+                            Row = "D",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4027,
+                            Column = 3,
+                            HallId = 4,
+                            Number = 3,
+                            Row = "D",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4028,
+                            Column = 4,
+                            HallId = 4,
+                            Number = 4,
+                            Row = "D",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4029,
+                            Column = 6,
+                            HallId = 4,
+                            Number = 5,
+                            Row = "D",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4030,
+                            Column = 7,
+                            HallId = 4,
+                            Number = 6,
+                            Row = "D",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4031,
+                            Column = 9,
+                            HallId = 4,
+                            Number = 7,
+                            Row = "D",
+                            Type = (byte)1
+                        },
+                        new
+                        {
+                            Id = 4032,
+                            Column = 10,
+                            HallId = 4,
+                            Number = 8,
+                            Row = "D",
+                            Type = (byte)1
+                        });
+                });
+
+            modelBuilder.Entity("MovieVerse.Api.Data.Showtime", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<int>("HallId")
+                        .HasColumnType("int");
+
+                    b.Property<DateOnly>("LocalDate")
+                        .HasColumnType("date");
+
+                    b.Property<int>("MovieId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MovieTitle")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("PosterPath")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("StandardPriceCents")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("StartsAtUtc")
+                        .HasColumnType("datetime2");
+
+                    b.Property<int>("VipPriceCents")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("LocalDate");
+
+                    b.HasIndex("HallId", "StartsAtUtc")
+                        .IsUnique();
+
+                    b.HasIndex("MovieId", "StartsAtUtc");
+
+                    b.ToTable("Showtimes");
+                });
+
             modelBuilder.Entity("MovieVerse.Api.Data.User", b =>
                 {
                     b.Property<int>("Id")
@@ -211,6 +3846,57 @@ namespace MovieVerse.Api.Data.Migrations
                         .IsUnique();
 
                     b.ToTable("Users");
+                });
+
+            modelBuilder.Entity("MovieVerse.Api.Data.Booking", b =>
+                {
+                    b.HasOne("MovieVerse.Api.Data.Showtime", "Showtime")
+                        .WithMany()
+                        .HasForeignKey("ShowtimeId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("MovieVerse.Api.Data.User", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Showtime");
+                });
+
+            modelBuilder.Entity("MovieVerse.Api.Data.BookingSeat", b =>
+                {
+                    b.HasOne("MovieVerse.Api.Data.Booking", null)
+                        .WithMany("Seats")
+                        .HasForeignKey("BookingId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("MovieVerse.Api.Data.Seat", "Seat")
+                        .WithMany()
+                        .HasForeignKey("SeatId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("MovieVerse.Api.Data.Showtime", null)
+                        .WithMany()
+                        .HasForeignKey("ShowtimeId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Seat");
+                });
+
+            modelBuilder.Entity("MovieVerse.Api.Data.Hall", b =>
+                {
+                    b.HasOne("MovieVerse.Api.Data.Cinema", "Cinema")
+                        .WithMany("Halls")
+                        .HasForeignKey("CinemaId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Cinema");
                 });
 
             modelBuilder.Entity("MovieVerse.Api.Data.ListItem", b =>
@@ -255,6 +3941,41 @@ namespace MovieVerse.Api.Data.Migrations
                         .HasForeignKey("ReviewId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("MovieVerse.Api.Data.Seat", b =>
+                {
+                    b.HasOne("MovieVerse.Api.Data.Hall", null)
+                        .WithMany("Seats")
+                        .HasForeignKey("HallId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("MovieVerse.Api.Data.Showtime", b =>
+                {
+                    b.HasOne("MovieVerse.Api.Data.Hall", "Hall")
+                        .WithMany()
+                        .HasForeignKey("HallId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Hall");
+                });
+
+            modelBuilder.Entity("MovieVerse.Api.Data.Booking", b =>
+                {
+                    b.Navigation("Seats");
+                });
+
+            modelBuilder.Entity("MovieVerse.Api.Data.Cinema", b =>
+                {
+                    b.Navigation("Halls");
+                });
+
+            modelBuilder.Entity("MovieVerse.Api.Data.Hall", b =>
+                {
+                    b.Navigation("Seats");
                 });
 
             modelBuilder.Entity("MovieVerse.Api.Data.Review", b =>

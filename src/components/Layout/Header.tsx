@@ -21,7 +21,12 @@ const Header: React.FC = () => {
               <span className="text-gray-400">Loading Genres...</span>
             ) : (
               <ul className="flex gap-4 text-white">
-                {genres?.slice(0, 5).map((genre) => (
+                <li>
+                  <Link to="/showtimes" className="font-semibold text-red-500 hover:text-red-400 transition">
+                    Tickets
+                  </Link>
+                </li>
+                {genres?.slice(0, 4).map((genre) => (
                   <li key={genre.id}>
                     <Link
                       to={`/genre/${genre.id}`}

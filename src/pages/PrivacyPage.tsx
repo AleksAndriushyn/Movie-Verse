@@ -1,6 +1,6 @@
 import React from "react";
 
-const LAST_UPDATED = "October 23, 2026";
+const LAST_UPDATED = "October 25, 2026";
 const ISSUES_URL = "https://github.com/AleksAndriushyn/Movie-platform/issues";
 
 const Section: React.FC<{ title: string; children: React.ReactNode }> = ({ title, children }) => (
@@ -47,6 +47,17 @@ const PrivacyPage: React.FC = () => {
 				</p>
 			</Section>
 
+			<Section title="Demo ticket bookings">
+				<p>
+					The cinemas on MovieVerse are fictional and so are the tickets. When you book seats we store the
+					showtime, the seats, the price and the booking status. Payments run through{" "}
+					<ExternalLink href="https://stripe.com/privacy">Stripe</ExternalLink> in test mode: no real money moves,
+					and you should only ever enter Stripe's test card numbers. We never see card details; Stripe's checkout
+					page receives them and tells us whether the (test) payment succeeded. We pass Stripe your email address
+					to pre-fill the checkout page.
+				</p>
+			</Section>
+
 			<Section title="Reviews are public">
 				<p>
 					Reviews you write are visible to everyone, together with your Google name, profile picture and your
@@ -62,7 +73,7 @@ const PrivacyPage: React.FC = () => {
 			<Section title="How we use it">
 				<p>
 					Only to provide the account features: signing you in, showing your lists and ratings, publishing your
-					reviews and keeping them free of spam and abuse. We do not sell or
+					reviews and keeping them free of spam and abuse, and handling your demo ticket bookings. We do not sell or
 					share your data, show ads, or build profiles. Our use of information received from Google APIs
 					adheres to the{" "}
 					<ExternalLink href="https://developers.google.com/terms/api-services-user-data-policy">
@@ -90,6 +101,7 @@ const PrivacyPage: React.FC = () => {
 						stored with your account.
 					</li>
 					<li><strong>Vercel</strong>: hosts the website.</li>
+					<li><strong>Stripe</strong> (test mode): the checkout page for demo ticket bookings.</li>
 					<li>
 						<strong>TMDB</strong>: movie information. Posters and photos load from TMDB's image servers, which
 						see your IP address like any website you visit.

@@ -19,6 +19,7 @@
     "axios": "^1.12.2",
     "clsx": "^2.1.1",
     "embla-carousel-react": "^8.6.0",
+    "qrcode.react": "^4.2.0",
     "react": "^19.2.0",
     "react-dom": "^19.1.1",
     "react-router-dom": "^7.9.4"

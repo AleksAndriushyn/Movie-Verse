@@ -2,7 +2,7 @@
 
 ASP.NET Core 10 API behind the MovieVerse frontend. It proxies the TMDB endpoints the site uses,
 so the TMDB token never reaches the browser, and keeps user accounts (Google sign-in) with their
-favorites, watchlist and ratings in Azure SQL.
+favorites, watchlist, ratings and reviews in Azure SQL.
 
 | Endpoint | TMDB call | Cached for |
 | --- | --- | --- |
@@ -11,16 +11,17 @@ favorites, watchlist and ratings in Azure SQL.
 | `GET /api/movies/{id}` | `movie/{id}?append_to_response=credits,videos` | 1 h |
 | `GET /api/genres` | `genre/movie/list` | 24 h |
 | `GET /api/genres/{id}/movies?page=` | `discover/movie?with_genres=` | 15 min |
+| `GET /api/movies/{id}/tmdb-reviews?page=` | `movie/{id}/reviews` | 1 h |
 | `GET /health` | — | — |
 
-Account endpoints use a cookie session (`mv_auth`, HttpOnly, SameSite=Lax):
+Account endpoints use a cookie session (`mv_auth`: HttpOnly, SameSite=Lax, 30 days, renewed while in use):
 
 | Endpoint | Description |
 | --- | --- |
 | `GET /api/auth/login?returnUrl=` | Redirects to Google; returns to `returnUrl` (same-site paths only) |
 | `POST /api/auth/logout` | Ends the session |
 | `GET /api/me` | Current user, or 401 |
-| `DELETE /api/me` | Deletes the account with all its lists and ratings, and ends the session |
+| `DELETE /api/me` | Deletes the account with its lists, ratings, reviews and reports, and ends the session |
 | `GET /api/me/lists` | Movie ids in `favorites` and `watchlist`, plus `ratings` as `{ "movieId": score }` |
 | `GET /api/me/lists/{list}?page=` | A list page in TMDB's paginated shape, newest first |
 | `PUT` / `DELETE /api/me/lists/{list}/{movieId}` | Add (idempotent, up to 1000 per list) / remove |
@@ -28,7 +29,28 @@ Account endpoints use a cookie session (`mv_auth`, HttpOnly, SameSite=Lax):
 | `PUT /api/me/ratings/{movieId}` | Rate with body `{ "score": 1-10 }`; re-rating updates the score (up to 5000 ratings) |
 | `DELETE /api/me/ratings/{movieId}` | Clears the rating |
 
-Responses are TMDB's JSON unchanged; errors are [ProblemDetails](https://www.rfc-editor.org/rfc/rfc9457).
+Reviews are public; writing, editing and reporting need a session:
+
+| Endpoint | Description |
+| --- | --- |
+| `GET /api/movies/{id}/reviews?page=` | Visible reviews, newest first, 10 per page, with the author's name, picture and rating; for a signed-in reader also `isOwn` and `reportedByMe` |
+| `GET /api/me/reviews/{movieId}` | Your review in any status (`visible`, `hidden`, `removed`), or `{ "review": null }` |
+| `PUT /api/me/reviews/{movieId}` | Write or edit with `{ "body": "...", "containsSpoilers": false }`: 10–4000 characters, one review per movie, at most 20 new reviews a day |
+| `DELETE /api/me/reviews/{movieId}` | Deletes your review (not one a moderator removed) |
+| `POST /api/reviews/{reviewId}/reports` | Report with `{ "reason": "spam" \| "offensive" \| "spoilers" \| "other" }`; once per user; 3 reports hide the review |
+
+Moderation endpoints need `Users.IsAdmin`, which is checked in the database on every request
+(grant it with `UPDATE Users SET IsAdmin = 1 WHERE Email = '<email>'`):
+
+| Endpoint | Description |
+| --- | --- |
+| `GET /api/admin/reviews?page=` | Hidden reviews and visible ones with reports, with movie title, author email and report reasons |
+| `POST /api/admin/reviews/{reviewId}/restore` | Makes the review visible and clears its reports |
+| `POST /api/admin/reviews/{reviewId}/remove` | Removes the review for good; the author can't edit or re-post it |
+
+TMDB proxy responses are TMDB's JSON unchanged, and list and rating pages use the same snake_case shape so the
+frontend reuses its movie grids; the other endpoints use camelCase JSON with enums as strings. Errors are
+[ProblemDetails](https://www.rfc-editor.org/rfc/rfc9457).
 `page` must be 1–500 and `query` at most 100 characters. Requests are rate limited to 120 per minute per client IP.
 The OpenAPI document is served at `/openapi/v1.json` in Development.
 

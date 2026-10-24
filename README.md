@@ -1,73 +1,91 @@
-# React + TypeScript + Vite
+# MovieVerse
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A movie browsing site with personal lists, ratings and reviews. Movie data comes from
+[TMDB](https://www.themoviedb.org/).
 
-Currently, two official plugins are available:
+**Live:** https://movies-world-lovat.vercel.app
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## Features
 
-## React Compiler
+- Popular movies, movies by genre and search, with pagination in the URL
+- Movie page: details, director and writers, cast, trailers (YouTube), reviews
+- Sign in with Google; favorites and watchlist; your own 1–10 ratings
+- Reviews: one per movie, editable, with a spoiler flag; reviews from TMDB in a separate tab
+- Reports and moderation: three reports hide a review until a moderator keeps or removes it (`/admin/reviews`)
+- Privacy policy (`/privacy`) and self-service account deletion
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Architecture
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```
+Browser ──► Vercel: React SPA ── /api/* rewrite ──► Azure App Service: ASP.NET Core 10 API
+                                                       ├─► TMDB API (token stays on the server, responses cached)
+                                                       └─► Azure SQL (users, lists, ratings, reviews)
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+The frontend only talks to the same-origin `/api`. The API keeps the TMDB token, caches TMDB responses,
+handles Google sign-in with a cookie session and stores user data. See [backend/README.md](backend/README.md)
+for the endpoints and deployment.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+| Part | Stack |
+| --- | --- |
+| Frontend | React 19, TypeScript, Vite 7, React Router 7, TanStack Query 5, Tailwind CSS 4, Headless UI, Embla Carousel |
+| API | ASP.NET Core 10 Minimal API, EF Core 10, HybridCache, Google OAuth, rate limiting, xUnit integration tests |
+| Hosting | Vercel (frontend), Azure App Service Free F1 and Azure SQL free serverless database (API), GitHub Actions (API deploys) |
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Getting started
+
+Prerequisites: Node.js 20.19+ or 22.12+, the .NET 10 SDK, and for the API's development database the Azure CLI
+signed in with access to it (`az login`).
+
+```bash
+npm ci
 ```
+
+Configure the API once (TMDB token, Google OAuth client, database access) as described in
+[backend/README.md → Local development](backend/README.md#local-development), then run the API and the site together:
+
+```bash
+npm run dev:all
+```
+
+The site runs at http://localhost:5173 and proxies `/api` to the API at http://localhost:5080.
+The frontend itself needs no secrets.
+
+| Script | What it does |
+| --- | --- |
+| `npm run dev` | Frontend only (Vite dev server) |
+| `npm run dev:api` | API only (`dotnet run`) |
+| `npm run dev:all` | API and frontend together |
+| `npm run build` | Type-check and build the frontend into `dist/` |
+| `npm run lint` | ESLint |
+| `npm run preview` | Serve the production build locally |
+
+API tests: `dotnet test backend` (in-memory SQLite and a fake TMDB, no network needed).
+
+## Project structure
+
+```
+src/                 React app
+  api/               API calls (movies, account, lists, reviews)
+  components/        UI components by feature (Movies, Reviews, Lists, Ratings, Auth, Layout, ...)
+  hooks/             TanStack Query hooks
+  pages/             Routes: home, movie, search, genre, favorites/watchlist/ratings, moderation, privacy, 404
+  types/, utils/
+backend/
+  src/MovieVerse.Api/          ASP.NET Core API (Movies, Auth, Lists, Reviews, Data + migrations)
+  tests/MovieVerse.Api.Tests/  Integration tests
+.github/workflows/   Backend build, test and deploy
+vercel.json          SPA fallback and the /api rewrite to Azure
+```
+
+## Deployment
+
+- **Frontend:** Vercel builds and deploys every push to `main`; pull requests get preview deployments.
+- **API:** the `Backend` GitHub Actions workflow tests every pull request that touches `backend/` and deploys
+  `main` to Azure App Service. Database migrations run when the API starts.
+- **Moderators:** admin rights are a flag in the database, set with
+  `UPDATE Users SET IsAdmin = 1 WHERE Email = '<email>'`; the user signs in again to see the Moderation link.
+
+## Attribution
+
+This product uses the TMDB API but is not endorsed or certified by TMDB.
